@@ -17,6 +17,9 @@ enum DioErrorType {
   /// When the request is cancelled, dio will throw a error with this type.
   CANCEL,
 
+  // It occurs when bad certificate in ssl pining.
+  BAD_CERTIFICATE,
+
   /// Default error type, Some other Error. In this case, you can
   /// use the DioError.error if it is not null.
   DEFAULT,

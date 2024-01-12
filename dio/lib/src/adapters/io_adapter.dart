@@ -10,12 +10,19 @@ typedef OnHttpClientCreate = dynamic Function(HttpClient client);
 
 HttpClientAdapter createAdapter() => DefaultHttpClientAdapter();
 
+typedef ValidateCertificate = bool Function(
+    X509Certificate certificate,
+    String host,
+    int port,
+    );
+
 /// The default HttpClientAdapter for Dio.
 class DefaultHttpClientAdapter implements HttpClientAdapter {
   /// [Dio] will create HttpClient when it is needed.
   /// If [onHttpClientCreate] is provided, [Dio] will call
   /// it when a HttpClient created.
   OnHttpClientCreate onHttpClientCreate;
+  ValidateCertificate validateCertificate;
 
   HttpClient _defaultHttpClient;
 
@@ -78,6 +85,24 @@ class DefaultHttpClientAdapter implements HttpClientAdapter {
       },
     ));
 
+    if (validateCertificate != null) {
+      final host = options.uri.host;
+      final port = options.uri.port;
+      final bool isCertApproved = validateCertificate(
+        responseStream.certificate,
+        host,
+        port,
+      );
+      if (!isCertApproved) {
+        throw DioError(
+          request: options,
+          error: responseStream.certificate,
+          type: DioErrorType.BAD_CERTIFICATE,
+        );
+      }
+    }
+
+
     var headers = <String, List<String>>{};
     responseStream.headers.forEach((key, values) {
       headers[key] = values;
@@ -136,3 +161,4 @@ class DefaultHttpClientAdapter implements HttpClientAdapter {
     _defaultHttpClient?.close(force: force);
   }
 }
+
